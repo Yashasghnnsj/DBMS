@@ -54,7 +54,7 @@ const Analytics = () => {
             <div className="card p-6 bg-primary-50 border-primary-200">
                 <div className="flex items-center gap-2 mb-3">
                     <Award size={20} className="text-primary-600" />
-                    <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">AI Insights</h3>
+                    <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">AI Summary</h3>
                 </div>
                 <p className="text-gray-700 text-sm leading-relaxed">
                     You have completed {stats.completion_rate}% of your enrolled courses.
@@ -125,13 +125,13 @@ const Analytics = () => {
             {detailedStats && (
                 <div className="card p-6 border-primary-100 bg-gradient-to-br from-white to-primary-50">
                     <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                        <TrendingUp size={24} className="text-primary-600" /> Deep Learning Analysis
+                        <TrendingUp size={24} className="text-primary-600" /> Learning History
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
                             <div className="flex items-center justify-between mb-4">
-                                <h4 className="text-gray-700 font-medium">Learning Velocity</h4>
+                                <h4 className="text-gray-700 font-medium">Study Pace</h4>
                                 <span className="bg-white px-3 py-1 rounded-full text-xs font-bold text-primary-600 shadow-sm">Weekly</span>
                             </div>
                             <div className="flex items-baseline gap-2 mb-2">
@@ -145,7 +145,7 @@ const Analytics = () => {
                         </div>
 
                         <div>
-                            <h4 className="text-gray-700 font-medium mb-4">30-Day Consistency Heatmap</h4>
+                            <h4 className="text-gray-700 font-medium mb-4">30-Day Activity</h4>
                             <div className="flex flex-wrap gap-1.5">
                                 {Array.from({ length: 30 }).map((_, i) => {
                                     const val = detailedStats.heatmap && detailedStats.heatmap[i] ? detailedStats.heatmap[i].count : 0;

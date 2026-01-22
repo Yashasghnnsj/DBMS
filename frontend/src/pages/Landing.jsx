@@ -53,7 +53,7 @@ const Landing = () => {
                     className="inline-flex items-center gap-3 px-6 py-2 bg-slate-900 rounded-full text-[10px] font-black text-white uppercase tracking-widest mb-10 shadow-premium"
                 >
                     <Sparkles size={14} className="text-blue-400" />
-                    Next-Generation Scholar Engine
+                    Next-Generation Study Assistant
                 </motion.div>
 
                 <motion.h1
@@ -100,8 +100,8 @@ const Landing = () => {
             {/* Features Section */}
             <section className="w-full max-w-7xl px-8 pb-40 relative z-10">
                 <div className="text-center mb-24">
-                    <h2 className="text-4xl font-black text-slate-900 tracking-tight mb-4">The Intelligent Edge</h2>
-                    <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Built for high-performance scholarship</p>
+                    <h2 className="text-4xl font-black text-slate-900 tracking-tight mb-4">Smart Learning Features</h2>
+                    <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Built for high-performance students</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
@@ -114,14 +114,14 @@ const Landing = () => {
                     <FeatureCard
                         icon={Activity}
                         delay={0.2}
-                        title="Workload Optimization"
-                        description="A dynamic scheduling engine that adapts to your bandwidth, sleep protocol, and institutional commitments to prevent burnout."
+                        title="Better Planning"
+                        description="A smart schedule that adapts to your time, sleep hours, and school commitments to prevent stress."
                     />
                     <FeatureCard
                         icon={Zap}
                         delay={0.3}
-                        title="Instant Synthesis"
-                        description="AI-driven research that identifies gold-standard textbooks and instantly synthesizes comprehensive study notes for any topic."
+                        title="Quick Summaries"
+                        description="AI research that finds top-rated textbooks and instantly creates study notes for any topic."
                     />
                 </div>
             </section>

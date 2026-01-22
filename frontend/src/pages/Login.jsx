@@ -75,10 +75,10 @@ const Login = ({ onLogin }) => {
                         </div>
                     </div>
                     <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-                        {isRegistering ? 'Create Student Account' : 'Welcome Back'}
+                        {isRegistering ? 'Sign Up' : 'Welcome Back'}
                     </h2>
                     <p className="mt-2 text-sm text-gray-600">
-                        {isRegistering ? 'Join the AI Academic Companion' : 'Sign in to continue learning'}
+                        {isRegistering ? 'Join your AI Study Assistant' : 'Sign in to continue learning'}
                     </p>
                 </div>
 

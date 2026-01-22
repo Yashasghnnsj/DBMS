@@ -129,14 +129,14 @@ const Workload = () => {
             </div>
 
             {/* AI Insight */}
-            <div className={`glass-card p-8 bg-slate-900 border-none shadow-premium relative overflow-hidden animate-slide-up`}>
+            <div className={`glass-card p-8 bg-slate-900 hover:bg-slate-900 border-none shadow-premium relative overflow-hidden animate-slide-up`}>
                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                 <div className="flex items-start gap-6 relative z-10">
                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${stats?.backlog_count > 0 ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
                         <AlertCircle size={28} />
                     </div>
                     <div className="space-y-1">
-                        <h3 className="text-xl font-black text-white tracking-tight">Capacitance Synthesis Insight</h3>
+                        <h3 className="text-xl font-black text-white tracking-tight">Daily Planning Insight</h3>
                         <p className="text-slate-400 font-medium leading-relaxed max-w-3xl">
                             {stats?.message}
                             {stats?.backlog_count > 0 && (
@@ -195,7 +195,10 @@ const Workload = () => {
                                         )}
                                         <div className="flex justify-between items-center">
                                             <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${t.type === 'manual' ? (t.priority === 'high' ? 'bg-red-100 text-red-600' : 'bg-blue-50 text-blue-600') : 'bg-slate-100 text-slate-500'}`}>
-                                                {t.type === 'manual' ? t.priority : 'Flexible'}
+                                                {t.type === 'manual' ? (
+                                                    t.priority === 'high' ? 'Urgent' :
+                                                        t.priority === 'medium' ? 'Normal' : 'Low'
+                                                ) : 'Flexible'}
                                             </span>
                                             <div className="flex items-center gap-1 text-slate-400">
                                                 <Clock size={10} />
@@ -227,8 +230,8 @@ const Workload = () => {
                             <Plus size={24} />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Manual Task Injection</h2>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Protocol Overload Bypass</p>
+                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Add New Task</h2>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Add your own study items</p>
                         </div>
                     </div>
                     <form onSubmit={handleAddTask} className="space-y-8">
@@ -241,34 +244,34 @@ const Workload = () => {
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Category</label>
                                 <select className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 outline-none font-bold text-slate-900 appearance-none" value={taskForm.category} onChange={e => setTaskForm({ ...taskForm, category: e.target.value })}>
-                                    <option value="school">Primary Institutional</option>
-                                    <option value="study">Deep Synthesis</option>
-                                    <option value="exam_prep">Critical Assessment</option>
-                                    <option value="personal">Peripheral</option>
+                                    <option value="school">School</option>
+                                    <option value="study">Study</option>
+                                    <option value="exam_prep">Exams</option>
+                                    <option value="personal">Personal</option>
                                 </select>
                             </div>
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Priority Matrix</label>
                                 <select className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 outline-none font-bold text-slate-900 appearance-none" value={taskForm.priority} onChange={e => setTaskForm({ ...taskForm, priority: e.target.value })}>
-                                    <option value="high">Critical (Tier 1)</option>
-                                    <option value="medium">Standard (Tier 2)</option>
-                                    <option value="low">Low (Tier 3)</option>
+                                    <option value="high">Urgent (Do ASAP)</option>
+                                    <option value="medium">Normal (Standard)</option>
+                                    <option value="low">Low (Flexible)</option>
                                 </select>
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-8">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Estimated Bandwidth (H)</label>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Time Needed (Hours)</label>
                                 <input type="number" step="0.5" min="0.5" className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 outline-none font-bold text-slate-900"
                                     value={taskForm.estimated_hours} onChange={e => setTaskForm({ ...taskForm, estimated_hours: e.target.value })} />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Terminal Deadline</label>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Due Date</label>
                                 <input type="date" className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 outline-none font-bold text-slate-900"
                                     value={taskForm.due_date} onChange={e => setTaskForm({ ...taskForm, due_date: e.target.value })} />
                             </div>
                         </div>
-                        <button type="submit" className="w-full btn btn-primary py-5 text-sm font-black uppercase tracking-widest shadow-premium">Commit to Engine</button>
+                        <button type="submit" className="w-full btn btn-primary py-5 text-sm font-black uppercase tracking-widest shadow-premium">Save Task</button>
                     </form>
                 </div>
             )}
@@ -280,8 +283,8 @@ const Workload = () => {
                             <Settings size={24} />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Capacitance Parameters</h2>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Neural Threshold Settings</p>
+                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Your Schedule Settings</h2>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Set your study hour limits</p>
                         </div>
                     </div>
 
@@ -290,15 +293,15 @@ const Workload = () => {
                             <div className="space-y-6">
                                 <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-3">
                                     <div className="w-1 h-3 bg-blue-600 rounded-full"></div>
-                                    Sleep Protocol
+                                    Sleep Schedule
                                 </h3>
                                 <div className="space-y-4">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Shutdown</label>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Sleep Time</label>
                                         <input type="time" className="w-full px-6 py-3 bg-slate-50 border-none rounded-2xl font-bold text-slate-900" value={scheduleSettings.sleep_start} onChange={e => setScheduleSettings({ ...scheduleSettings, sleep_start: e.target.value })} />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Reboot</label>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Wake Up</label>
                                         <input type="time" className="w-full px-6 py-3 bg-slate-50 border-none rounded-2xl font-bold text-slate-900" value={scheduleSettings.sleep_end} onChange={e => setScheduleSettings({ ...scheduleSettings, sleep_end: e.target.value })} />
                                     </div>
                                 </div>
@@ -306,7 +309,7 @@ const Workload = () => {
                             <div className="space-y-6">
                                 <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-3">
                                     <div className="w-1 h-3 bg-slate-900 rounded-full"></div>
-                                    Institutional Lock
+                                    School Schedule
                                 </h3>
                                 <div className="space-y-4">
                                     <div className="space-y-2">
@@ -320,7 +323,7 @@ const Workload = () => {
                                 </div>
                             </div>
                         </div>
-                        <button type="submit" className="w-full btn btn-primary py-5 text-sm font-black uppercase tracking-widest shadow-premium">Synchronize Engine</button>
+                        <button type="submit" className="w-full btn btn-primary py-5 text-sm font-black uppercase tracking-widest shadow-premium">Update Schedule</button>
                     </form>
                 </div>
             )}

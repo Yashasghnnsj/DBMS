@@ -138,6 +138,8 @@ class Topic(db.Model):
     sequence_order = db.Column(db.Integer, nullable=False)
     youtube_video_id = db.Column(db.String(50))
     estimated_duration_minutes = db.Column(db.Integer)
+    is_unlocked = db.Column(db.Boolean, default=False)
+    clarification_notes = db.Column(db.Text) # AI suggestions stored here
     
     # Progress tracking
     completed_at = db.Column(db.DateTime)
@@ -156,6 +158,8 @@ class Topic(db.Model):
             'sequence_order': self.sequence_order,
             'youtube_video_id': self.youtube_video_id,
             'estimated_duration_minutes': self.estimated_duration_minutes,
+            'is_unlocked': self.is_unlocked,
+            'clarification_notes': self.clarification_notes,
             'completed_at': self.completed_at.isoformat() if self.completed_at else None,
             'actual_duration_minutes': self.actual_duration_minutes,
             'suggested_deadline': self.suggested_deadline.isoformat() if self.suggested_deadline else None

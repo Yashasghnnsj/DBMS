@@ -52,13 +52,13 @@ const Layout = ({ user, onLogout }) => {
                             Learning Path
                         </div>
                         <SidebarItem to="/courses" icon={BookOpen} label="My Courses" />
-                        <SidebarItem to="/learning-path" icon={Map} label="Classroom" />
+                        <SidebarItem to="/learning-path" icon={Map} label="My Learning Path" />
 
                         <div className="mt-10 px-5 mb-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
                             Productivity
                         </div>
-                        <SidebarItem to="/tasks" icon={CheckSquare} label="Tasks & Goals" />
-                        <SidebarItem to="/workload" icon={Activity} label="Workload Map" />
+                        <SidebarItem to="/tasks" icon={CheckSquare} label="Task Manager" />
+                        <SidebarItem to="/workload" icon={Activity} label="Study Schedule" />
                     </nav>
 
                     {/* User Profile */}

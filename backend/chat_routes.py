@@ -135,18 +135,13 @@ def chat_message():
         HISTORY: {history_str}
         INSTRUCTIONS: Answer the student's question helpfuly. If they asked about a course concept, use the [RELEVANT COURSE CONTENT] to inform your answer. Be concise."""
 
-        if GOOGLE_API_KEY:
-            try:
-                import google.generativeai as genai
-                genai.configure(api_key=GOOGLE_API_KEY)
-                model = genai.GenerativeModel('gemini-2.5-flash-lite')
-                response = model.generate_content(f"{system_prompt}\n\nStudent: {user_message}\nAI:")
-                ai_response_text = response.text
-            except Exception as e:
-                print(f"Gemini Error: {e}")
-                ai_response_text = "My reasoning engine is offline. Please try again later."
-        else:
-            ai_response_text = "I'm in offline mode. I can identify your intent (" + intent_label + "), but I cannot generate a full response without Gemini."
+        from ml_service import llm_service
+        try:
+            response = llm_service.generate_content(f"{system_prompt}\n\nStudent: {user_message}\nAI:")
+            ai_response_text = response.text
+        except Exception as e:
+            print(f"Chat AI Error: {e}")
+            ai_response_text = "My reasoning engine experienced a hiccup. Please try again later."
 
     # Save Messages
     db.session.add(ChatMessage(student_id=current_student_id, role='user', content=user_message, context_type=context_type, context_id=context_id))

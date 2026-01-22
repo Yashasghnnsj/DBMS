@@ -19,6 +19,14 @@ def generate_notes():
     topic = Topic.query.get_or_404(topic_id)
     course = Course.query.get(topic.course_id)
     
+    # Check for existing notes to prevent redundant generation
+    existing_note = Note.query.filter_by(student_id=current_user_id, topic_id=topic_id).first()
+    if existing_note:
+        return jsonify({
+            'message': 'Notes retrieved from history',
+            'note': existing_note.to_dict()
+        })
+    
     try:
         prompt = f"""
         You are an expert professor creating comprehensive study materials.
@@ -62,30 +70,28 @@ def generate_notes():
         }}
         """
         
-        response = llm_service.generate_content(prompt, max_new_tokens=3500)
+        response = llm_service.generate_content(prompt, max_new_tokens=2500)
         text_resp = response.text.strip()
         
         # Robust JSON Extraction
-        final_content = text_resp
-        try:
-            import re
-            json_match = re.search(r'\{.*\}', text_resp, re.DOTALL)
-            if json_match:
-                json_obj = json.loads(json_match.group(0))
-                final_content = json.dumps(json_obj) # Store as JSON String
-            else:
-                # Fallback structure if AI fails JSON
+        clean_text = llm_service.clean_json_response(text_resp)
+        final_content = clean_text
+        if clean_text.startswith('{') or clean_text.startswith('['):
+            try:
+                json_obj = json.loads(clean_text)
+                final_content = json.dumps(json_obj) # Store as clean JSON String
+            except Exception as e:
+                print(f"Notes JSON parse fail: {e}")
+                # If JSON parsing fails but looks like it was meant to be JSON, wrap it
                 final_content = json.dumps({
                     "title": f"Notes: {topic.title}",
-                    "sections": [
-                        {"heading": "Generated Notes", "content": text_resp}
-                    ]
+                    "sections": [{"heading": "Introduction & Content", "content": text_resp}]
                 })
-        except Exception as e:
-            print(f"Notes JSON parse fail: {e}")
+        else:
+            # It's plain markdown, wrap it in a structure the frontend expects
             final_content = json.dumps({
                 "title": f"Notes: {topic.title}",
-                "sections": [{"heading": "Content", "content": text_resp}]
+                "sections": [{"heading": "Detailed Overview", "content": clean_text}]
             })
         
         # SAVE to DB

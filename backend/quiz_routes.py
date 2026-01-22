@@ -20,17 +20,28 @@ def generate_quiz(topic_id):
     if not topic:
         return jsonify({'error': 'Topic not found'}), 404
 
-    # Check if quiz already exists and HAS questions
+    # Check if quiz already exists and HAS questions with options
     quiz = Quiz.query.filter_by(topic_id=topic_id).first()
     
-    # If quiz exists but has no questions, we need to generate them
-    if quiz and not quiz.questions:
+    should_generate = False
+    if not quiz:
+        should_generate = True
+    elif not quiz.questions:
         print(f"DEBUG: Quiz {quiz.quiz_id} exists but has no questions. Generating...")
         should_generate = True
-    elif not quiz:
-        should_generate = True
     else:
-        should_generate = False
+        # Check if ANY question is missing options (for MCQ/TrueFalse)
+        has_empty_options = any(
+            (q.question_type in ['mcq', 'true_false']) and (not q.options or q.options == '[]') 
+            for q in quiz.questions
+        )
+        if has_empty_options:
+            print(f"DEBUG: Quiz {quiz.quiz_id} has questions with missing options. Re-generating...")
+            # Clean up old questions to avoid duplicates on re-gen
+            for q in quiz.questions:
+                db.session.delete(q)
+            db.session.commit()
+            should_generate = True
 
     if should_generate:
         if not quiz:
@@ -51,43 +62,34 @@ def generate_quiz(topic_id):
             context_material = topic.description if topic.description else f"{topic.title} in the context of {course_title}"
             
             prompt = f"""
-You are creating a FACTUAL KNOWLEDGE QUIZ with REASONING for the topic: "{topic.title}"
+You are creating a HIGH-QUALITY ACADEMIC QUIZ for: "{topic.title}"
 Course: "{course_title}"
 
 Source Material:
 {topic.description}
 
 CRITICAL REQUIREMENTS:
-- Generate 5-8 Multiple Choice Questions (aim for at least 5)
+- Generate EXACTLY 8 Multiple Choice Questions (MCQs)
 - Each question MUST have EXACTLY 4 options labeled A, B, C, D
-- Questions should be FACTUAL and SPECIFIC (not abstract concepts)
-- Test knowledge of specific facts, values, definitions, or procedures
-- Students must be able to explain WHY their answer is correct
+- Questions must be CHALLENGING and focus on REASONING and deeper understanding
+- For each question, provide a detailed reasoning/explanation of why the correct answer is right and why others are wrong.
+- The student must demonstrate logical deduction to arrive at the answer.
 
-QUESTION STYLE:
-- "What is the primary function of...?"
-- "Which algorithm is used for...?"
-- "At what value does X occur?"
-- "What happens when...?"
-- "Which of the following is true about...?"
+Example Logic: 
+If the question is "At what temperature does water have highest density?", 
+the answer is "4°C", 
+and the reasoning is "At 4°C, the opposing effects of thermal contraction and the structure-breaking of ice-like clusters balance to create maximum density. Below this point, the formation of open hexagonal structures causes expansion."
 
-EXAMPLES OF GOOD QUESTIONS:
-- "Water reaches its maximum density at?" 
-  Options: ["0°C", "4°C", "100°C", "25°C"]
-  
-- "Which sorting algorithm has the best average-case time complexity?"
-  Options: ["Bubble Sort O(n²)", "Quick Sort O(n log n)", "Selection Sort O(n²)", "Insertion Sort O(n²)"]
-
-Output ONLY a valid JSON array:
+Output ONLY a valid JSON array of objects:
 [
   {{
-    "question": "Specific factual question about {topic.title}?",
+    "question": "The complex reasoning question here?",
     "options": ["Option A", "Option B", "Option C", "Option D"],
     "correct_answer": "Option B",
-    "explanation": "Clear explanation of why this answer is correct",
+    "explanation": "Detailed step-by-step reasoning for this answer",
     "type": "mcq"
   }},
-  ...more questions (5-8 total)...
+  ... (generate exactly 8 items) ...
 ]
 
 IMPORTANT: 
@@ -150,16 +152,35 @@ IMPORTANT:
                     q_type = 'true_false'
                 else:
                     # All others (short answer, fill blank, etc) fall to textarea
-                    q_type = 'open' 
+                    q_type = 'open'
+
+                # More robust key extraction for options and correct answer
+                q_options = q_data.get('options', q_data.get('choices', q_data.get('answers', [])))
                 
+                # If still empty, look for any list inside q_data
+                if not q_options or not isinstance(q_options, list):
+                    for val in q_data.values():
+                        if isinstance(val, list) and len(val) >= 2:
+                            q_options = val
+                            break
+                
+                # Ensure it's a list for safety
+                if not isinstance(q_options, list):
+                    q_options = []
+
+                q_correct = q_data.get('correct_answer', q_data.get('correct', q_data.get('answer', '')))
+                q_explanation = q_data.get('explanation', q_data.get('reasoning', q_data.get('content', '')))
+                
+                print(f"DEBUG: Processing question: {q_text[:30]}... Options found: {len(q_options)}")
+
                 question = Question(
                     quiz_id=quiz.quiz_id,
                     question_text=q_text,
                     question_type=q_type,
-                    options=json.dumps(q_data.get('options', [])),
-                    correct_answer=q_data.get('correct_answer', ''),
+                    options=json.dumps(q_options),
+                    correct_answer=q_correct,
                     points=q_data.get('points', 10),
-                    explanation=q_data.get('explanation', ''),
+                    explanation=q_explanation,
                     reasoning_required=q_data.get('reasoning_required', True)
                 )
                 db.session.add(question)
@@ -264,8 +285,8 @@ def submit_quiz(quiz_id):
     for question in quiz.questions:
         max_score += question.points
         q_id = str(question.question_id)
-        user_answer = answers.get(q_id)
-        user_reason = reasoning.get(q_id, "")
+        user_answer = submitted_answers.get(q_id)
+        user_reason = submitted_reasoning.get(q_id, "")
         
         # Grading
         is_correct = False
@@ -295,8 +316,17 @@ def submit_quiz(quiz_id):
         feedback_details[q_id] = {
             'correct': is_correct,
             'understood': analysis['understood'],
-            'feedback': analysis['feedback']
+            'feedback': analysis['feedback'],
+            'severity': analysis['severity'],
+            'clarification': analysis['clarification_notes']
         }
+        
+        # Immediate Clarification: If minor misconception, attach to topic
+        if not analysis['understood'] and analysis['severity'] == 'minor':
+            topic = Topic.query.get(quiz.topic_id)
+            if topic:
+                current_notes = topic.clarification_notes or ""
+                topic.clarification_notes = current_notes + f"\n- {analysis['clarification_notes']}"
         
         if not analysis['understood']:
             misconceptions.extend(analysis['misconceptions'])
@@ -319,7 +349,25 @@ def submit_quiz(quiz_id):
     from models import Task, TopicResource
     
     if passed:
-        # Auto-assign creative task
+        # Unlock Next Topic / Module
+        topic = Topic.query.get(quiz.topic_id)
+        next_topic = Topic.query.filter(
+            Topic.course_id == topic.course_id, 
+            Topic.sequence_order > topic.sequence_order
+        ).order_by(Topic.sequence_order.asc()).first()
+        
+        if next_topic:
+            next_topic.is_unlocked = True
+            print(f"DEBUG: Unlocked next topic: {next_topic.title}")
+            
+            # Feature: Next Module Video Suggestion
+            from video_recommender import get_video_for_topic
+            if not next_topic.youtube_video_id:
+                course = Course.query.get(topic.course_id)
+                v = get_video_for_topic(next_topic.title, course.title if course else "")
+                if v: next_topic.youtube_video_id = v['youtube_id']
+
+        # Auto-assign creative task (existing logic)
         existing_task = Task.query.filter_by(
             student_id=current_student_id, 
             description=f"Generated from Quiz: {quiz.title}"
@@ -338,84 +386,99 @@ def submit_quiz(quiz_id):
             db.session.add(new_task)
             
     else:
-        # Remedial Content Generation
-        if not passed:
+        # Remedial Content Generation (Core Gaps)
+        core_misconceptions = [m for q_id, f in feedback_details.items() if not f['understood'] and f['severity'] == 'core']
+        
+        if core_misconceptions:
             try:
                 topic = Topic.query.get(quiz.topic_id)
                 from ml_service import llm_service
                 
                 # Identify key misconception to target
-                top_misconception = misconceptions[0] if misconceptions else "core concepts"
+                top_misconception = core_misconceptions[0]
                 
+                # REGENERATE / ADAPT PATH: Ask AI to create a remedial sub-path
                 prompt = f"""
-                Title: Remedial Lesson for "{topic.title}"
-                Focus: The student struggles with: {top_misconception}
+                The student is struggling with a CORE concept: "{top_misconception}"
+                Original Topic: "{topic.title}"
                 
-                Generate a simpler topic module.
+                Generate a 2-topic remedial sub-path to bridge this gap before they can proceed.
+                Topics should be simpler and more fundamental.
+                
                 Output JSON:
-                {{
-                    "title": "Remedial: {topic.title} - {top_misconception[:20]}...",
-                    "description": "Simplified explanation focusing on...",
-                    "estimated_duration_minutes": 20
-                }}
+                [
+                    {{
+                        "title": "Remedial Level 1: [Simplified Logic]",
+                        "description": "Foundational explanation of...",
+                        "duration": 15
+                    }},
+                    {{
+                        "title": "Remedial Level 2: [Bridging to {topic.title}]",
+                        "description": "Connecting basics to the current topic...",
+                        "duration": 20
+                    }}
+                ]
                 """
                 
                 response = llm_service.generate_content(prompt)
-                text_resp = response.text.replace('```json', '').replace('```', '').strip()
-                remedial_data = json.loads(text_resp)
+                text_resp = llm_service.clean_json_response(response.text)
+                remedial_steps = json.loads(text_resp)
                 
-                # Shift sequences
-                next_topics = Topic.query.filter(Topic.course_id == topic.course_id, Topic.sequence_order > topic.sequence_order).all()
-                for t in next_topics:
-                    t.sequence_order += 1
+                # Shift sequence of all upcoming topics
+                upcoming = Topic.query.filter(
+                    Topic.course_id == topic.course_id, 
+                    Topic.sequence_order > topic.sequence_order
+                ).all()
+                for u in upcoming:
+                    u.sequence_order += len(remedial_steps)
                 
-                # New Topic
-                new_topic = Topic(
-                    course_id=topic.course_id,
-                    student_id=current_student_id,
-                    title=remedial_data['title'],
-                    description=remedial_data.get('description', 'Remedial content'),
-                    sequence_order=topic.sequence_order + 1,
-                    estimated_duration_minutes=remedial_data.get('estimated_duration_minutes', 20)
-                )
-                db.session.add(new_topic)
-                db.session.commit() # Commit to get ID for resources
-                
-                # Video Recommendations
-                from video_recommender import get_remedial_videos
-                videos = get_remedial_videos(topic.title, top_misconception)
-                
-                recommended_resources = []
-                for v in videos:
-                    res = TopicResource(
-                        topic_id=new_topic.topic_id,
-                        resource_type='video',
-                        title=v['title'],
-                        url=v['url'],
-                        youtube_video_id=v['youtube_id'],
-                        recommended_for='remedial'
+                # Insert new remedial topics
+                from video_recommender import get_video_for_topic
+                for i, step in enumerate(remedial_steps):
+                    new_t = Topic(
+                        course_id=topic.course_id,
+                        student_id=current_student_id,
+                        title=step['title'],
+                        description=step['description'],
+                        sequence_order=topic.sequence_order + i + 1,
+                        estimated_duration_minutes=step['duration'],
+                        is_unlocked=(i == 0) # Unlock the first remedial topic immediately
                     )
-                    db.session.add(res)
-                    recommended_resources.append(v)
+                    # Video for remedial
+                    v = get_video_for_topic(new_t.title, topic.title)
+                    if v: new_t.youtube_video_id = v['youtube_id']
+                    
+                    db.session.add(new_t)
                 
-                # Stub for schedule recalculation
-                from course_routes import recalculate_course_timeline
-                recalculate_course_timeline(current_student_id, topic.course_id)
+                db.session.commit()
                 
             except Exception as e:
-                print(f"Remedial Gen Error: {e}")
-                import traceback
-                traceback.print_exc()
+                print(f"Adaptive Path Error: {e}")
 
     db.session.commit()
     
+    # Fetch next topic info for immediate suggestion
+    next_topic = Topic.query.filter(Topic.course_id == topic.course_id, Topic.sequence_order > topic.sequence_order).order_by(Topic.sequence_order.asc()).first()
+    next_suggestion = None
+    if next_topic and next_topic.is_unlocked:
+        next_suggestion = {
+            'title': next_topic.title,
+            'topic_id': next_topic.topic_id,
+            'video_id': next_topic.youtube_video_id,
+            'description': next_topic.description
+        }
+
     # Return result
     return jsonify({
         'attempt_id': attempt.attempt_id,
+        'quiz_id': quiz_id,
+        'topic_id': Topic.query.get(quiz.topic_id).topic_id,
         'score': percentage,
         'passed': passed,
-        'feedback': feedback_details,
+        'feedback': "Great work!" if passed else "Let's review some core concepts.",
+        'details': feedback_details,
         'misconceptions': misconceptions,
-        'remedial_resources': recommended_resources if not passed and 'recommended_resources' in locals() else []
+        'remedial_resources': recommended_resources if not passed and 'recommended_resources' in locals() else [],
+        'next_topic_suggestion': next_suggestion
     })
 

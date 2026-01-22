@@ -77,6 +77,19 @@ const LearningPath = () => {
 
     const handleGenerateNotes = async (topic) => {
         try {
+            // Check if we already have history for this topic to avoid unnecessary API call
+            // and show immediate existing content if available
+            const existingInHistory = notesHistory.find(n => n.topic_id === topic.topic_id);
+            if (existingInHistory) {
+                setNotesModal({
+                    isOpen: true,
+                    title: existingInHistory.title,
+                    content: existingInHistory.content,
+                    noteId: existingInHistory.note_id
+                });
+                return;
+            }
+
             // Show loading state in modal immediately
             setNotesModal({ isOpen: true, title: topic.title, content: 'Generating comprehensive notes with AI... This may take a moment.', noteId: null });
             setIsEditing(false);
@@ -85,7 +98,6 @@ const LearningPath = () => {
             const data = await res.json();
 
             if (res.ok) {
-                // Support new nested structure or legacy
                 const noteData = data.note || data;
                 setNotesModal({
                     isOpen: true,
@@ -93,7 +105,6 @@ const LearningPath = () => {
                     content: noteData.content || '',
                     noteId: noteData.note_id
                 });
-                // Fetch history for this topic
                 await fetchNotesHistory(topic.topic_id);
             } else {
                 setNotesModal({ isOpen: true, title: 'Error', content: 'Failed to generate notes. Please try again.', noteId: null });
@@ -234,10 +245,10 @@ const LearningPath = () => {
                         <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-soft">
                             <BookOpen size={24} />
                         </div>
-                        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Active Curriculum</span>
+                        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">My Learning Path</span>
                     </div>
                     <h1 className="text-5xl font-black text-slate-900 tracking-tightest leading-tight">{activeCourse.title}</h1>
-                    <p className="text-lg text-slate-500 font-medium max-w-2xl leading-relaxed">{activeCourse.description || "Master this domain with our AI-enhanced learning path and deep reasoning protocols."}</p>
+                    <p className="text-lg text-slate-500 font-medium max-w-2xl leading-relaxed">{activeCourse.description || "Master this subject with our AI-enhanced learning path and smart exercises."}</p>
                     {activeCourse.best_book_referenced && (
                         <a
                             href={activeCourse.best_book_link || '#'}
@@ -246,7 +257,7 @@ const LearningPath = () => {
                             className={`flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-xl text-xs font-bold w-fit border border-blue-100 animate-fade-in transition-all group/book ${activeCourse.best_book_link ? 'hover:bg-blue-100 cursor-pointer' : 'cursor-default'}`}
                         >
                             <BookOpen size={14} />
-                            <span className="uppercase tracking-wider group-hover/book:translate-x-1 transition-transform">Expertise Foundation: {activeCourse.best_book_referenced}</span>
+                            <span className="uppercase tracking-wider group-hover/book:translate-x-1 transition-transform">Recommended Book: {activeCourse.best_book_referenced}</span>
                             {activeCourse.best_book_link && <Play size={10} className="fill-blue-700" />}
                         </a>
                     )}
@@ -271,7 +282,7 @@ const LearningPath = () => {
                     )}
 
                     <div className="flex justify-between items-end mb-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Mastery Level</span>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Course Progress</span>
                         <span className="text-sm font-black text-blue-600">{Math.round(progress)}%</span>
                     </div>
                     <div className="progress-bar h-3">
@@ -309,9 +320,9 @@ const LearningPath = () => {
                                         <div className="w-20 h-20 bg-white/5 rounded-[2.5rem] flex items-center justify-center mb-8 animate-float">
                                             <Play size={40} className="text-blue-500 fill-blue-500 ml-1" />
                                         </div>
-                                        <h3 className="text-3xl font-black mb-4 tracking-tight">External Seminar Required</h3>
+                                        <h3 className="text-3xl font-black mb-4 tracking-tight">Video Not Found</h3>
                                         <p className="text-slate-400 mb-10 max-w-lg font-medium leading-relaxed">
-                                            Our neural search couldn't index a direct feed for this specific module. Explore the world's largest repository for deep-dive tutorials.
+                                            Our search couldn't find a direct video for this specific topic. You can try searching for it manually on YouTube.
                                         </p>
                                         <a
                                             href={`https://www.youtube.com/results?search_query=${encodeURIComponent(currentTopic.title + " " + activeCourse.title)}`}
@@ -329,7 +340,7 @@ const LearningPath = () => {
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-1">
                                         <h2 className="text-3xl font-black text-slate-900 tracking-tight">{currentTopic.title}</h2>
-                                        <p className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">Primary Module Content</p>
+                                        <p className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">Topic Overview</p>
                                     </div>
                                     <div className="flex gap-4">
                                         <button
@@ -342,7 +353,7 @@ const LearningPath = () => {
                                 </div>
                                 <div className="prose prose-slate max-w-none">
                                     <p className="text-lg text-slate-600 font-medium leading-relaxed">
-                                        This module covers critical concepts in {currentTopic.title}. Watch the seminar above and utilize our AI Synthesis engine to generate deep-dive study notes and reasoning exercises.
+                                        This lesson covers important concepts in {currentTopic.title}. Watch the video above and use the AI assistant to get study notes and practice questions.
                                     </p>
                                 </div>
                                 <div className="pt-6 border-t border-slate-50 flex flex-wrap gap-4">
@@ -350,7 +361,7 @@ const LearningPath = () => {
                                         onClick={() => navigate(`/quiz/${currentTopic.topic_id}`)}
                                         className="btn btn-primary px-10 py-5 text-sm uppercase tracking-widest font-black flex items-center gap-3"
                                     >
-                                        Initiate Assessment <ArrowRight size={18} />
+                                        Start Quiz <ArrowRight size={18} />
                                     </button>
                                 </div>
                             </div>
@@ -360,11 +371,11 @@ const LearningPath = () => {
 
                 {/* Right: Timeline Sidebar */}
                 <div className="lg:col-span-4 space-y-8">
-                    <div className="glass-card p-8 bg-slate-900 border-none shadow-xl relative overflow-hidden">
+                    <div className="glass-card p-8 bg-slate-900 hover:bg-slate-900 border-none shadow-xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
                         <h3 className="text-xl font-black text-white mb-8 tracking-tight relative z-10 flex items-center gap-3">
                             <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
-                            Curriculum Relay
+                            Course Topics
                         </h3>
 
                         <div className="space-y-6 relative">
@@ -391,10 +402,10 @@ const LearningPath = () => {
                                         </div>
 
                                         <div className={`flex-1 pt-1 space-y-1 ${isCurrent ? 'translate-x-1' : ''} transition-transform`}>
-                                            <h4 className={`text-sm font-bold tracking-tight ${isCurrent ? 'text-white' : 'text-slate-400'} group-hover:text-white transition-colors`}>
+                                            <h4 className={`text-sm font-bold tracking-tight ${isCurrent ? 'text-white' : 'text-slate-300'} group-hover:text-white transition-colors`}>
                                                 {topic.title}
                                             </h4>
-                                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
                                                 <span>{topic.estimated_duration_minutes}m</span>
                                                 {topic.suggested_deadline && (
                                                     <span className={isCurrent ? 'text-blue-400' : ''}>
@@ -564,52 +575,89 @@ const LearningPath = () => {
 
                                                     if (contentObj && contentObj.sections) {
                                                         return (
-                                                            <>
-                                                                <div className="border-b-2 border-slate-900 pb-6 mb-8">
-                                                                    <h1 className="text-4xl font-black text-slate-900 mb-2 tracking-tight">Study Notes</h1>
-                                                                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">{contentObj.title}</p>
+                                                            <div className="animate-fade-in">
+                                                                <div className="border-b-4 border-slate-900 pb-8 mb-10">
+                                                                    <div className="flex justify-between items-start mb-4">
+                                                                        <h1 className="text-5xl font-black text-slate-900 tracking-tightest leading-none">STUDY NOTES</h1>
+                                                                        <div className="text-right">
+                                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Academic Edition</p>
+                                                                            <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">AI Generated</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <h2 className="text-xl font-bold text-slate-500 font-serif italic">{contentObj.title}</h2>
                                                                 </div>
+
                                                                 {contentObj.sections.map((sec, idx) => {
-                                                                    // Handle content that might be string or array
                                                                     let contentToRender = sec.content;
                                                                     if (Array.isArray(contentToRender)) {
                                                                         contentToRender = contentToRender.join('\n');
                                                                     }
 
-                                                                    // Simple markdown-to-HTML conversion
                                                                     const formatContent = (text) => {
+                                                                        if (!text) return '';
                                                                         return text
-                                                                            // Headers
-                                                                            .replace(/### (.+)/g, '<h3 class="text-xl font-bold text-slate-800 mt-6 mb-3">$1</h3>')
-                                                                            .replace(/## (.+)/g, '<h2 class="text-2xl font-bold text-slate-800 mt-6 mb-4">$2</h2>')
+                                                                            // Clean up any double escaping
+                                                                            .replace(/\\n/g, '\n')
+                                                                            // Massive Headers
+                                                                            .replace(/^# (.+)/gm, '<h1 class="text-3xl font-black text-slate-900 mb-6 mt-12">$1</h1>')
+                                                                            .replace(/^## (.+)/gm, '<h2 class="text-2xl font-bold text-slate-800 mb-4 mt-10 border-b border-slate-100 pb-2">$1</h2>')
+                                                                            .replace(/^### (.+)/gm, '<h3 class="text-xl font-bold text-slate-800 mb-3 mt-8">$1</h3>')
                                                                             // Bold
-                                                                            .replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold text-slate-900">$1</strong>')
+                                                                            .replace(/\*\*(.+?)\*\*/g, '<strong class="font-black text-slate-900">$1</strong>')
+                                                                            // Italic
+                                                                            .replace(/\*(.+?)\*/g, '<em class="italic text-slate-700">$1</em>')
                                                                             // Bullet points
-                                                                            .replace(/^- (.+)$/gm, '<li class="ml-6 mb-2">$1</li>')
+                                                                            .replace(/^- (.+)$/gm, '<div class="flex gap-3 mb-3 pl-2"><div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div><p class="text-slate-700 leading-relaxed">$1</p></div>')
+                                                                            .replace(/^\* (.+)$/gm, '<div class="flex gap-3 mb-3 pl-2"><div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div><p class="text-slate-700 leading-relaxed">$1</p></div>')
                                                                             // Numbered lists
-                                                                            .replace(/^\d+\. (.+)$/gm, '<li class="ml-6 mb-2">$1</li>')
-                                                                            // Line breaks
-                                                                            .replace(/\n/g, '<br/>');
+                                                                            .replace(/^\d+\. (.+)$/gm, '<div class="flex gap-3 mb-3 pl-2 text-slate-900 font-bold"><span>$&</span></div>')
+                                                                            // Code blocks
+                                                                            .replace(/```python\n([\s\S]*?)```/g, '<pre class="bg-slate-900 text-slate-100 p-6 rounded-2xl my-6 font-mono text-sm overflow-x-auto border-l-4 border-blue-500 shadow-lg"><code>$1</code></pre>')
+                                                                            .replace(/```([\s\S]*?)```/g, '<pre class="bg-slate-50 text-slate-700 p-6 rounded-2xl my-6 font-mono text-sm overflow-x-auto border border-slate-200">$1</pre>')
+                                                                            // Horizontal rules
+                                                                            .replace(/^---$/gm, '<hr class="my-12 border-slate-100" />')
+                                                                            // Paragraphs (split by double newline)
+                                                                            .split('\n\n')
+                                                                            .map(p => p.trim() && !p.startsWith('<') ? `<p class="mb-6 text-slate-700 leading-relaxed text-lg font-medium">${p}</p>` : p)
+                                                                            .join('\n');
                                                                     };
 
                                                                     return (
-                                                                        <div key={idx} className="mb-8">
-                                                                            <h2 className="text-2xl font-bold text-slate-800 mb-4 border-l-4 border-blue-500 pl-4">{sec.heading}</h2>
+                                                                        <div key={idx} className="mb-12 group">
+                                                                            <div className="flex items-center gap-4 mb-6">
+                                                                                <div className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-black text-xl shadow-soft">
+                                                                                    {idx + 1}
+                                                                                </div>
+                                                                                <h2 className="text-3xl font-black text-slate-900 tracking-tight">{sec.heading}</h2>
+                                                                            </div>
                                                                             <div
-                                                                                className="text-slate-700 leading-relaxed prose prose-slate max-w-none"
+                                                                                className="pl-4 border-l-2 border-slate-50 group-hover:border-blue-100 transition-colors"
                                                                                 dangerouslySetInnerHTML={{ __html: formatContent(contentToRender) }}
                                                                             />
                                                                         </div>
                                                                     );
                                                                 })}
-                                                                <div className="mt-12 pt-6 border-t border-slate-200 text-center text-xs font-mono text-slate-400">
-                                                                    Generated by Academic Companion AI • {new Date().toLocaleDateString()}
+
+                                                                <div className="mt-20 pt-10 border-t-2 border-slate-100 flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                                    <span>© Academic Companion AI Systems</span>
+                                                                    <span>Document ID: {notesModal.noteId || 'Draft'}</span>
+                                                                    <span>{new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                                                                 </div>
-                                                            </>
+                                                            </div>
                                                         );
                                                     } else {
-                                                        // Fallback for old markdown notes
-                                                        return <div dangerouslySetInnerHTML={{ __html: notesModal.content.replace(/\n/g, '<br/>') }}></div>;
+                                                        // Robust Fallback for unstructured content
+                                                        const formatFallback = (text) => {
+                                                            if (!text) return '';
+                                                            return text
+                                                                .replace(/\n/g, '<br/>')
+                                                                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                                                        };
+                                                        return (
+                                                            <div className="prose prose-slate max-w-none">
+                                                                <div dangerouslySetInnerHTML={{ __html: formatFallback(notesModal.content) }}></div>
+                                                            </div>
+                                                        );
                                                     }
                                                 } catch (e) {
                                                     return <div className="text-red-500">Error rendering document: {e.message}</div>;

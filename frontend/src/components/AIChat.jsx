@@ -156,7 +156,7 @@ const AIChat = () => {
                         <div className="px-6 mb-2">
                             <div className="px-3 py-1 bg-slate-900/5 rounded-full text-[9px] font-black text-slate-500 flex items-center gap-1.5 w-fit border border-slate-900/10 uppercase tracking-widest">
                                 <Bot size={10} />
-                                ACTIVE CONTEXT: {getContext().type}
+                                CURRENT TOPIC: {getContext().type}
                             </div>
                         </div>
 
@@ -229,7 +229,7 @@ const AIChat = () => {
                                 </button>
                             </div>
                             <p className="text-[10px] text-center mt-3 font-bold text-slate-300 uppercase tracking-widest">
-                                Powered by Gemini 2.5 Intelligence
+                                Powered by smart AI
                             </p>
                         </div>
                     </motion.div>

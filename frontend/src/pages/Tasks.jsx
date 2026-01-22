@@ -57,14 +57,14 @@ const Tasks = () => {
                         <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-soft">
                             <Plus size={24} />
                         </div>
-                        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Workflow Engine</span>
+                        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Task Manager</span>
                     </div>
-                    <h1 className="text-5xl font-black text-slate-900 tracking-tightest leading-tight">Academic Tasks</h1>
-                    <p className="text-lg text-slate-500 font-medium max-w-2xl leading-relaxed">Systematically organize your study objectives with our AI-prioritized task matrix.</p>
+                    <h1 className="text-5xl font-black text-slate-900 tracking-tightest leading-tight">Your Study Tasks</h1>
+                    <p className="text-lg text-slate-500 font-medium max-w-2xl leading-relaxed">Organize your study goals easily with our smart task list.</p>
                 </div>
                 <button className="btn btn-primary px-10 py-5 text-sm uppercase tracking-widest font-black flex items-center gap-3">
                     <Plus size={20} />
-                    New objective
+                    New Task
                 </button>
             </div>
 
@@ -102,7 +102,10 @@ const Tasks = () => {
                                                     task.priority === 'medium' ? 'bg-amber-50 text-amber-600 border-amber-100' :
                                                         'bg-slate-50 text-slate-500 border-slate-100'
                                                 }`}>
-                                                {isCreative ? 'Neuro-Challenge' : task.priority}
+                                                {isCreative ? 'Creative Task' :
+                                                    task.priority === 'high' ? 'Urgent' :
+                                                        task.priority === 'medium' ? 'Normal' : 'Low'
+                                                }
                                             </div>
                                             <span className={`text-[10px] font-bold uppercase tracking-tighter ${isCreative ? 'text-slate-500' : 'text-slate-300'}`}>
                                                 #{task.tag || 'GEN'}

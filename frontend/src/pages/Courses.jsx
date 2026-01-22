@@ -134,7 +134,7 @@ const Courses = () => {
 
             <div className="p-8 space-y-6 flex-1 flex flex-col">
                 <p className="text-sm font-medium text-slate-500 line-clamp-3 leading-relaxed">
-                    {course.description || "Master this subject with our AI-curated curriculum and deep reasoning exercises."}
+                    {course.description || "Master this subject with our smart learning path and practice questions."}
                 </p>
 
                 {course.best_book_referenced && (
@@ -160,7 +160,7 @@ const Courses = () => {
                 {isEnrolled && (
                     <div className="mt-auto space-y-3">
                         <div className="flex justify-between items-end mb-1">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Learning Velocity</span>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Weekly Progress</span>
                             <span className="text-xs font-bold text-slate-900">{course.progress || 0}%</span>
                         </div>
                         <div className="progress-bar">
@@ -218,7 +218,7 @@ const Courses = () => {
                                 disabled={loading}
                                 className="absolute right-3 top-3 bottom-3 bg-slate-900 text-white px-10 rounded-[1.5rem] font-black uppercase tracking-widest text-sm hover:bg-slate-800 transition-all duration-300 disabled:opacity-50 shadow-soft"
                             >
-                                {loading ? <Loader className="animate-spin" size={20} /> : 'Execute'}
+                                {loading ? <Loader className="animate-spin" size={20} /> : 'Search'}
                             </button>
                         </div>
                     </form>
@@ -233,7 +233,7 @@ const Courses = () => {
                             <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-soft">
                                 <Search size={20} />
                             </div>
-                            <h2 className="text-3xl font-black text-slate-900 tracking-tight">AI Insights</h2>
+                            <h2 className="text-3xl font-black text-slate-900 tracking-tight">AI Summary</h2>
                         </div>
                         <button
                             onClick={() => { setSearching(false); setSearchQuery(''); }}
@@ -246,7 +246,7 @@ const Courses = () => {
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-24 gap-4">
                             <div className="w-16 h-16 border-4 border-slate-100 border-t-blue-600 rounded-full animate-spin"></div>
-                            <p className="text-slate-400 font-bold uppercase tracking-widest animate-pulse">Consulting Neural Network...</p>
+                            <p className="text-slate-400 font-bold uppercase tracking-widest animate-pulse">Searching database...</p>
                         </div>
                     ) : error ? (
                         <div className="glass-card p-12 text-center text-red-500 font-bold border-red-100 bg-red-50/10">
@@ -267,7 +267,7 @@ const Courses = () => {
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <h3 className="text-xl font-black tracking-tight uppercase italic opacity-60">Neural Synthesis</h3>
+                                            <h3 className="text-xl font-black tracking-tight uppercase italic opacity-60">AI Summary</h3>
                                             <p className="text-slate-200 text-lg font-medium leading-relaxed max-w-4xl">{searchExtra.insight}</p>
                                         </div>
                                     </div>
@@ -301,7 +301,7 @@ const Courses = () => {
                                     <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
                                         <Search size={32} className="text-slate-200" />
                                     </div>
-                                    <h3 className="text-2xl font-black text-slate-900">No Archives Found</h3>
+                                    <h3 className="text-2xl font-black text-slate-900">No Results Found</h3>
                                     <p className="text-slate-500 font-medium">Try broadening your search term or using keywords like "Fundamentals" or "Advanced".</p>
                                 </div>
                             )}
@@ -315,7 +315,7 @@ const Courses = () => {
                             <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-soft">
                                 <GraduationCap size={20} />
                             </div>
-                            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Active Curriculum</h2>
+                            <h2 className="text-3xl font-black text-slate-900 tracking-tight">My Courses</h2>
                         </div>
                     </div>
 
@@ -330,9 +330,9 @@ const Courses = () => {
                             <div className="w-32 h-32 bg-slate-50 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 group-hover:bg-blue-600 group-hover:rotate-12 transition-all duration-700">
                                 <BookOpen className="text-slate-200 group-hover:text-white transition-colors" size={48} />
                             </div>
-                            <h3 className="text-3xl font-black text-slate-900 tracking-tight mb-4">Zero Enrollment Detected</h3>
+                            <h3 className="text-3xl font-black text-slate-900 tracking-tight mb-4">No Courses Found</h3>
                             <p className="text-slate-500 font-medium mb-10 max-w-sm mx-auto leading-relaxed">
-                                Your scholarly record is currently empty. Use the search field above to discover your first domain of study.
+                                Your course list is currently empty. Use the search bar above to find your first subject.
                             </p>
                             <button
                                 onClick={() => document.querySelector('input').focus()}

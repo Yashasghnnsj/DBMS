@@ -45,8 +45,11 @@ def search_youtube_video(query, topic_title="", max_results=5):
     Search YouTube and rank results using a Hybrid approach:
     Relevance (YouTube) + Semantic Similarity (MiniLM)
     """
-    api_key = YOUTUBE_API_KEY or os.getenv('GOOGLE_API_KEY')
+    # Prioritize YOUTUBE_API_KEY from .env
+    api_key = os.getenv('YOUTUBE_API_KEY') or YOUTUBE_API_KEY or os.getenv('GOOGLE_API_KEY')
+    
     if not api_key:
+        print("CRITICAL: No YouTube API Key found in environment.")
         return [{'youtube_id': None, 'title': f'{topic_title} Search', 'url': f'https://www.youtube.com/results?search_query={topic_title}'}]
 
     try:

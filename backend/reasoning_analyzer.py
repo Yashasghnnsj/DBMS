@@ -34,14 +34,17 @@ def analyze_reasoning(question_text, correct_answer, student_answer, student_rea
         
         Strictly output VALID JSON:
         {{
-            "label": "Entailment", 
+            "label": "Entailment" | "Contradiction" | "Neutral", 
             "confidence": 0.9,
-            "feedback": "Short feedback to student...",
-            "misconceptions": ["List any specific errors"]
+            "severity": "minor" | "core",
+            "core_importance": 0.0 to 1.0,
+            "feedback": "Concise pedagogical feedback...",
+            "misconceptions": ["List any specific errors"],
+            "clarification_notes": "If severity is minor, provide a 1-2 sentence clarification."
         }}
         """
         
-        response = llm_service.generate_content(prompt, max_tokens=256)
+        response = llm_service.generate_content(prompt, max_new_tokens=256)
         text_resp = response.text.replace('```json', '').replace('```', '').strip()
         result = json.loads(text_resp)
         
@@ -54,6 +57,9 @@ def analyze_reasoning(question_text, correct_answer, student_answer, student_rea
             'misconceptions': result.get('misconceptions', []),
             'feedback': result.get('feedback', "Reasoning reviewed."),
             'label': label,
+            'severity': result.get('severity', 'core' if label != 'Entailment' else 'none'),
+            'core_importance': result.get('core_importance', 0.5),
+            'clarification_notes': result.get('clarification_notes', ''),
             'confidence': result.get('confidence', 0.8),
             'score': score
         }

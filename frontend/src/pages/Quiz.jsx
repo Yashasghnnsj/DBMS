@@ -80,7 +80,7 @@ const Quiz = () => {
                 <Loader className="animate-spin text-slate-900" size={48} />
                 <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-500 animate-pulse" size={20} />
             </div>
-            <p className="text-slate-500 font-bold uppercase tracking-widest text-xs animate-pulse">Analyzing Deep Concepts...</p>
+            <p className="text-slate-500 font-bold uppercase tracking-widest text-xs animate-pulse">Thinking...</p>
         </div>
     );
 
@@ -107,7 +107,7 @@ const Quiz = () => {
                         </motion.div>
 
                         <h2 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">
-                            {result.passed ? 'Assessment Mastered!' : 'Mastery in Progress'}
+                            {result.passed ? 'Quiz Completed!' : 'Keep Practicing'}
                         </h2>
 
                         <p className="text-slate-500 text-lg mb-10 max-w-2xl mx-auto font-medium">
@@ -118,7 +118,7 @@ const Quiz = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                             <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 shadow-soft">
-                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Efficiency Score</div>
+                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Your Score</div>
                                 <div className="text-4xl font-black text-slate-900">{result.score.toFixed(0)}%</div>
                             </div>
                             <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 shadow-soft">
@@ -142,9 +142,28 @@ const Quiz = () => {
                                     <div className="w-8 h-8 bg-amber-500 rounded-xl flex items-center justify-center text-white shadow-soft">
                                         <AlertTriangle size={16} />
                                     </div>
-                                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Professor AI: Misconception Analysis</h3>
+                                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Professor AI: Insight & Clarifications</h3>
                                 </div>
                                 <div className="grid grid-cols-1 gap-4">
+                                    {result.details && Object.values(result.details).map((detail, i) => (
+                                        detail.clarification && (
+                                            <motion.div
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: i * 0.1 }}
+                                                key={`clarify-${i}`}
+                                                className="bg-blue-50 border border-blue-100 p-5 rounded-2xl flex items-start gap-4"
+                                            >
+                                                <div className="w-6 h-6 bg-blue-200 rounded-full flex items-center justify-center text-blue-700 font-bold text-xs flex-shrink-0">
+                                                    ?
+                                                </div>
+                                                <div>
+                                                    <p className="text-blue-900 font-black text-xs uppercase tracking-widest mb-1 italic">Clarification</p>
+                                                    <p className="text-blue-900 font-medium">{detail.clarification}</p>
+                                                </div>
+                                            </motion.div>
+                                        )
+                                    ))}
                                     {result.misconceptions.map((m, i) => (
                                         <motion.div
                                             initial={{ opacity: 0, x: -20 }}
@@ -159,6 +178,46 @@ const Quiz = () => {
                                             <p className="text-amber-900 font-semibold">{m}</p>
                                         </motion.div>
                                     ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Next Module Suggestion */}
+                        {result.next_topic_suggestion && result.passed && (
+                            <div className="mb-12 text-left">
+                                <div className="flex items-center gap-2 mb-6">
+                                    <div className="w-8 h-8 bg-emerald-500 rounded-xl flex items-center justify-center text-white shadow-soft">
+                                        <ArrowRight size={16} />
+                                    </div>
+                                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Up Next: {result.next_topic_suggestion.title}</h3>
+                                </div>
+                                <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-blue-500/30 transition-all" />
+                                    <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center">
+                                        {result.next_topic_suggestion.video_id ? (
+                                            <div className="w-full md:w-48 aspect-video rounded-2xl overflow-hidden bg-slate-800 shadow-premium">
+                                                <img
+                                                    src={`https://img.youtube.com/vi/${result.next_topic_suggestion.video_id}/mqdefault.jpg`}
+                                                    alt="Next Preview"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div className="w-full md:w-48 aspect-video rounded-2xl bg-slate-800 flex items-center justify-center">
+                                                <BookOpen className="text-slate-600" size={32} />
+                                            </div>
+                                        )}
+                                        <div className="flex-1 text-center md:text-left">
+                                            <p className="text-blue-400 font-black text-[10px] uppercase tracking-[0.2em] mb-2">Recommended Loading...</p>
+                                            <h4 className="text-xl font-bold mb-4">{result.next_topic_suggestion.title}</h4>
+                                            <button
+                                                onClick={() => navigate(`/topic/${result.next_topic_suggestion.topic_id}`)}
+                                                className="py-3 px-6 bg-white text-slate-900 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-blue-50 transition-all flex items-center gap-2 mx-auto md:mx-0"
+                                            >
+                                                Start Next Module <ArrowRight size={14} />
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -199,7 +258,7 @@ const Quiz = () => {
                                 onClick={() => navigate('/learning-path')}
                                 className="flex-1 py-5 px-8 bg-slate-900 text-white rounded-[1.5rem] font-black uppercase tracking-widest text-sm shadow-premium hover:bg-slate-800 hover:-translate-y-1 transition-all flex items-center justify-center gap-3"
                             >
-                                {result.passed ? 'Initiate Mastery Project' : 'Sync Adjusted Timeline'}
+                                {result.passed ? 'Start Practice Project' : 'Update My Schedule'}
                                 <ArrowRight size={18} />
                             </button>
                             {!result.passed && (
@@ -207,7 +266,7 @@ const Quiz = () => {
                                     onClick={() => window.location.reload()}
                                     className="py-5 px-8 bg-white text-slate-900 border border-slate-200 rounded-[1.5rem] font-black uppercase tracking-widest text-sm shadow-soft hover:bg-slate-50 transition-all"
                                 >
-                                    Retry Assessment
+                                    Retry Quiz
                                 </button>
                             )}
                         </div>
@@ -217,7 +276,7 @@ const Quiz = () => {
         );
     }
 
-    if (!quiz) return <div className="text-center py-24 font-black text-slate-300 uppercase tracking-widest">Assessment Initialization Failed</div>;
+    if (!quiz) return <div className="text-center py-24 font-black text-slate-300 uppercase tracking-widest">Quiz Couldn't Start</div>;
 
     const question = quiz.questions && quiz.questions.length > 0 ? quiz.questions[currentQuestionIndex] : null;
     const isLastQuestion = quiz.questions ? currentQuestionIndex === quiz.questions.length - 1 : false;
@@ -225,7 +284,7 @@ const Quiz = () => {
     if (!question) return (
         <div className="flex flex-col justify-center items-center h-[80vh] gap-4">
             <XCircle className="text-red-500" size={48} />
-            <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Assessment questions could not be retrieved.</p>
+            <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Questions could not be loaded.</p>
             <button onClick={() => navigate(-1)} className="mt-4 px-6 py-2 bg-slate-900 text-white rounded-xl font-bold uppercase tracking-widest text-[10px]">Return to Learning Path</button>
         </div>
     );
@@ -239,8 +298,8 @@ const Quiz = () => {
                             <Sparkles className="text-white" size={20} />
                         </div>
                         <div>
-                            <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">Active Assessment</h2>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Professor AI Context: {quiz.title}</p>
+                            <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">Current Quiz</h2>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Topic: {quiz.title}</p>
                         </div>
                     </div>
                     <div className="text-right">
@@ -323,8 +382,8 @@ const Quiz = () => {
                             <Brain size={20} />
                         </div>
                         <div>
-                            <h3 className="text-base font-black text-slate-900 uppercase tracking-tight">Active Reasoning Engine</h3>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Explain your mental model for this choice</p>
+                            <h3 className="text-base font-black text-slate-900 uppercase tracking-tight">Explain Your Thinking</h3>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tell us how you got this answer</p>
                         </div>
                     </div>
 
@@ -357,7 +416,7 @@ const Quiz = () => {
                         disabled={!answers[question.id] || loading}
                         className="flex-1 py-5 px-8 bg-slate-900 text-white rounded-[1.5rem] font-black uppercase tracking-widest text-sm shadow-premium hover:bg-slate-800 hover:-translate-y-1 transition-all disabled:opacity-50 disabled:grayscale flex items-center justify-center gap-3"
                     >
-                        {loading ? 'Processing Mastery...' : (isLastQuestion ? 'Complete Assessment' : 'Commit Answer')}
+                        {loading ? 'Thinking...' : (isLastQuestion ? 'Finish Quiz' : 'Save Answer')}
                         {!loading && <ArrowRight size={18} />}
                     </button>
                 </div>

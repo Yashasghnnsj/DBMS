@@ -98,7 +98,7 @@ def search_courses():
         }}
         """
         
-        response = llm_service.generate_content(prompt, max_tokens=1024)
+        response = llm_service.generate_content(prompt, max_new_tokens=1024)
         text_resp = response.text.replace('```json', '').replace('```', '').strip()
         import json
         data_resp = json.loads(text_resp)
@@ -235,37 +235,34 @@ def create_course_from_search():
         try:
             from ml_service import llm_service
             
-            book_ctx = f"This course is based on the authoritative textbook: {course.best_book_referenced}" if course.best_book_referenced else ""
+            book_ctx = f"This course is based on the gold-standard textbook: {course.best_book_referenced}" if course.best_book_referenced else ""
             
             prompt = f"""
-            Act as a university curriculum designer. Create a detailed syllabus for: "{course.title}" ({course.category}).
+            Act as a Lead Academic Scientist. Design a granular, high-specificity syllabus for: "{course.title}" ({course.category}).
             Context: {course.description}
             {book_ctx}
             
-            Task: Generate 6-10 specific, descriptive chapters/topics.
+            TASK: Break this course down into 5-6 comprehensive academic modules. 
             
-            CRITICAL RULES:
-            1. Do NOT use generic names like "Introduction" or "Conclusion". Use specific titles (e.g., "Linear Equations & Inequalities" instead of "Basics").
-            2. Follow the table of contents of the "gold-standard" textbook for this subject.
-            3. Ensure a logical progression from fundamental to advanced.
+            STRICT CONSTRAINTS:
+            - NO generic titles like "Introduction", "Basics", "Core Concepts", "Advanced Topics", or "Conclusion".
+            - Each title MUST be a technical academic chapter name (e.g., "Non-Newtonian Fluid Dynamics" instead of "Advanced Physics").
+            - The progression must follow a logical university-level pedagogical path.
+            - Ensure titles are descriptive enough for targeted educational content retrieval.
             
-            Strictly output VALID JSON:
+            OUTPUT: Return ONLY a valid JSON array of objects.
+            Format:
             [
-                {{
-                    "title": "Chapter 1: The Nature of Matter (Specific Title)",
-                    "duration_minutes": 45
-                }}
+                {{"title": "Specific Academic Chapter Title", "duration_minutes": 60}}
             ]
             """
-            response = llm_service.generate_content(prompt)
-            text_resp = response.text.replace('```json', '').replace('```', '').strip()
-            import json
+            response = llm_service.generate_content(prompt, max_new_tokens=1500)
+            text_resp = llm_service.clean_json_response(response.text)
             syllabus = json.loads(text_resp)
             
             from video_recommender import get_video_for_topic
             
             for idx, item in enumerate(syllabus):
-                # Attempt to find a relevant video
                 video = get_video_for_topic(item['title'], course.title)
                 video_id = video['youtube_id'] if video else None
                 
@@ -274,27 +271,29 @@ def create_course_from_search():
                     title=item['title'], 
                     sequence_order=idx+1, 
                     estimated_duration_minutes=item.get('duration_minutes', 45),
-                    youtube_video_id=video_id
+                    youtube_video_id=video_id,
+                    is_unlocked=(idx == 0) # First topic is always unlocked
                 )
                 topics_to_add.append(t)
                 
         except Exception as e:
             print(f"Syllabus Gen Error: {e}")
-            # Fallback will trigger below
+            # Fallback will trigger if topics_to_add is empty
                 
         if not topics_to_add:
-            # Fallback
+            # Enhanced Fallback: Use Course Title to make it slightly less generic
             from video_recommender import get_video_for_topic
             
-            fallback_data = [
-                ('Introduction', 20),
-                ('Core Concepts', 30),
-                ('Advanced Applications', 45),
-                ('Practical Laboratory', 45),
-                ('Conclusion & Review', 20)
+            fallback_titles = [
+                f"Fundamental Principles of {course.title}",
+                f"Core Methodologies in {course.title}",
+                f"Structural Analysis of {course.title}",
+                f"Advanced Theoretical Frameworks of {course.title}",
+                f"Practical Implementation of {course.title}",
+                f"Synthesis and Peer Review of {course.title}"
             ]
             
-            for idx, (title, duration) in enumerate(fallback_data):
+            for idx, title in enumerate(fallback_titles):
                 video = get_video_for_topic(title, course.title)
                 video_id = video['youtube_id'] if video else None
                 
@@ -302,8 +301,9 @@ def create_course_from_search():
                     course_id=course.course_id, 
                     title=title, 
                     sequence_order=idx+1, 
-                    estimated_duration_minutes=duration,
-                    youtube_video_id=video_id
+                    estimated_duration_minutes=45,
+                    youtube_video_id=video_id,
+                    is_unlocked=(idx == 0)
                 )
                 topics_to_add.append(t)
             
@@ -382,11 +382,37 @@ def complete_topic(topic_id):
         course_id=topic.course_id
     ).first()
     
-    if not enrollment:
-        return jsonify({'error': 'Not enrolled in this course'}), 403
+    if not topic.completed_at:
+        topic.completed_at = datetime.utcnow()
+        db.session.commit()
     
-    # Simple logic: increment progress by (100 / total_topics)
+    # Calculate progress
     total_topics = Topic.query.filter_by(course_id=topic.course_id).count()
+    completed_topics = Topic.query.filter_by(course_id=topic.course_id).filter(Topic.completed_at != None).count()
+    enrollment.completion_percentage = (completed_topics / total_topics) * 100
+    
+    # Unlock Next Topic if it's not assessment-gated
+    # (Checking if current topic HAS a quiz. If yes, the quiz handles unlocking. If no, we unlock here)
+    from models import Quiz
+    topic_quiz = Quiz.query.filter_by(topic_id=topic.topic_id).first()
+    
+    if not topic_quiz:
+        next_topic = Topic.query.filter(
+            Topic.course_id == topic.course_id, 
+            Topic.sequence_order > topic.sequence_order
+        ).order_by(Topic.sequence_order.asc()).first()
+        
+        if next_topic:
+            next_topic.is_unlocked = True
+            
+            # Fetch video for next module if missing
+            from video_recommender import get_video_for_topic
+            if not next_topic.youtube_video_id:
+                course = Course.query.get(topic.course_id)
+                v = get_video_for_topic(next_topic.title, course.title if course else "")
+                if v: next_topic.youtube_video_id = v['youtube_id']
+                
+    db.session.commit()
     return jsonify({'message': 'Topic completed', 'new_progress': enrollment.completion_percentage})
 
 
@@ -567,8 +593,7 @@ def get_active_learning_path():
         status = 'locked'
         if t.completed_at:
             status = 'completed'
-        elif i == 0 or (i > 0 and sorted_path[i-1].completed_at):
-             # Available if previous is done (simplified logic for UI, the graph is the real truth)
+        elif t.is_unlocked:
             status = 'active'
             
         t_dict['status'] = status
