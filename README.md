@@ -1,6 +1,6 @@
 # AI Academic Companion - Intelligent Learning Management System
 
-![RVCE Logo](rvce_logo.png)
+![AI Academic Companion Logo](logo.png)
 
 ## 📋 Executive Summary
 
