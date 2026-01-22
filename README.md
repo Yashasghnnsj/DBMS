@@ -857,6 +857,9 @@ Refer to `backend/models.py` for complete schema definitions.
 
 This is an academic project. For contributions or inquiries, please contact the development team.
 
+**Contributors:**
+- Yashna bhandary
+
 ---
 
 ## 📝 License
@@ -867,7 +870,7 @@ This project is developed as part of a DBMS course project at RVCE.
 
 ## 🙏 Acknowledgments
 
-- **RVCE DBMS Department**: For project guidance
+- **RVCE AIML Department**: For project guidance
 - **Hugging Face**: For the Qwen model
 - **Google**: For Gemini API
 - **YouTube**: For Data API v3
