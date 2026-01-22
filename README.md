@@ -104,8 +104,10 @@ Unlike traditional LMS platforms that offer static content delivery, our system 
 - Quiz attempt history with detailed analytics
 
 **Innovation:**
-- **Misconception Detection**: AI analyzes wrong answers to identify specific gaps in understanding
-- **Dynamic Path Adjustment**: Learning path automatically adapts based on quiz performance
+- **Misconception Detection**: AI analyzes wrong answers with a **Severity-Aware Engine (Minor vs. Core)**
+- **Dynamic Path Adjustment**: If a core gap is found, the system **regenerates the learning path** by inserting a 2-topic remedial sub-path.
+- **Immediate Clarifications**: Minor logic errors receive instant "Professor AI Clarifications" displayed on the result page.
+- **Sequential Unlocking**: Topics are unlocked one-by-one; next module videos are proactively suggested upon mastery.
 
 ---
 
@@ -525,8 +527,9 @@ User → Type Message → POST /api/chat → Save Message to DB → Load Context
 
 ### **APIs & Services**
 - **YouTube Data API v3**: Video recommendations
-- **Google Gemini 2.5 Flash Lite**: Advanced AI reasoning
-- **Local LLM (Qwen)**: Offline content generation
+- **OpenRouter (Llama-3-8b)**: Holistic AI engine for generation and reasoning
+- **Google Gemini 2.5 Flash Lite**: Secondary fallback for advanced course search
+- **Local LLM (Qwen)**: Lightweight backup for offline generation
 
 ### **Database**
 - **Development**: SQLite (academic_companion.db)
@@ -650,18 +653,23 @@ estimated_hours = base_hours * difficulty_multiplier[course.difficulty_level]
 
 ---
 
+**Code Location**: `backend/ml_service.py` → `llm_service` (Powered by OpenRouter Llama-3-8b)
+
+---
+
 #### **4. Dynamic Learning Path Adjustment**
-**Algorithm**: Sequential insertion with reordering
+**Algorithm**: Sequential insertion with severity-based remediation
 
-**Steps:**
-1. Student fails quiz (score < 70%)
-2. Generate remedial topic using LLM
-3. Find failed topic's sequence order
-4. Increment all subsequent topics' sequence by 1
-5. Insert remedial topic at `failed_sequence + 1`
-6. Update database with new ordering
+**Steps**:
+1. Student submits quiz; reasoning is analyzed for severity.
+2. If `severity == 'minor'`: AI attaches a `clarification_note` to the current topic.
+3. If `severity == 'core'`:
+    - Generate a 2-topic remedial sub-path using Llama.
+    - Shift sequence orders of all upcoming topics by +2.
+    - Insert new simplified modules.
+4. If passed: Automatically unlock the next module and fetch its lecture video.
 
-**Code Location**: `backend/ai_routes.py` → `submit_quiz()`
+**Code Location**: `backend/quiz_routes.py` → `submit_quiz()`
 
 ---
 
