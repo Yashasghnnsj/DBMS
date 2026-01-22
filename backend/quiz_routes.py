@@ -62,39 +62,32 @@ def generate_quiz(topic_id):
             context_material = topic.description if topic.description else f"{topic.title} in the context of {course_title}"
             
             prompt = f"""
-You are creating a HIGH-QUALITY ACADEMIC QUIZ for: "{topic.title}"
+You are creating a HIGH-QUALITY ACADEMIC CONCEPTUAL ASSESSMENT for: "{topic.title}"
 Course: "{course_title}"
 
 Source Material:
 {topic.description}
 
 CRITICAL REQUIREMENTS:
-- Generate EXACTLY 8 Multiple Choice Questions (MCQs)
-- Each question MUST have EXACTLY 4 options labeled A, B, C, D
-- Questions must be CHALLENGING and focus on REASONING and deeper understanding
-- For each question, provide a detailed reasoning/explanation of why the correct answer is right and why others are wrong.
-- The student must demonstrate logical deduction to arrive at the answer.
-
-Example Logic: 
-If the question is "At what temperature does water have highest density?", 
-the answer is "4°C", 
-and the reasoning is "At 4°C, the opposing effects of thermal contraction and the structure-breaking of ice-like clusters balance to create maximum density. Below this point, the formation of open hexagonal structures causes expansion."
+- Generate EXACTLY 5 Conceptual Reasoning Questions.
+- These questions should NOT have options. They are open-ended assessments of understanding.
+- Questions must be CHALLENGING and focus on "HOW" and "WHY" rather than "WHAT".
+- For each question, provide a "Model Correct Answer" which is a detailed step-by-step reasoning that explains the fundamental principles.
+- The goal is to force the student to explain the underlying logic in their own words.
 
 Output ONLY a valid JSON array of objects:
 [
   {{
-    "question": "The complex reasoning question here?",
-    "options": ["Option A", "Option B", "Option C", "Option D"],
-    "correct_answer": "Option B",
-    "explanation": "Detailed step-by-step reasoning for this answer",
-    "type": "mcq"
+    "question": "The complex conceptual reasoning question here?",
+    "correct_answer": "Detailed model reasoning that the student's answer should match in principle",
+    "explanation": "Pedagogical goal of this question",
+    "type": "conceptual"
   }},
-  ... (generate exactly 8 items) ...
+  ... (generate exactly 5 items) ...
 ]
 
 IMPORTANT: 
-- Make questions specific and testable
-- Ensure there is ONE clearly correct answer
+- Focus on synthesis and application of concepts
 - Output ONLY the JSON array, no other text
 """
             
@@ -148,6 +141,8 @@ IMPORTANT:
                 # Normalize for Frontend (Quiz.jsx expects 'mcq' or 'true_false' for buttons)
                 if 'multiple' in raw_type or 'choice' in raw_type:
                     q_type = 'mcq'
+                elif 'conceptual' in raw_type or 'reasoning' in raw_type:
+                    q_type = 'conceptual'
                 elif 'true' in raw_type or 'false' in raw_type or 'closed' in raw_type:
                     q_type = 'true_false'
                 else:
@@ -301,15 +296,26 @@ def submit_quiz(quiz_id):
             user_reason
         )
         
-        # Scoring logic with partial credit for reasoning
+        # Scoring logic for conceptual questions (Pure reasoning)
         points_awarded = 0
-        if is_correct:
-            points_awarded = question.points
-            if question.reasoning_required and not analysis['understood']:
-                points_awarded *= 0.7 # Penalty for correct answer but wrong reasoning (lucky guess)
+        if question.question_type == 'conceptual':
+            if analysis['understood']:
+                points_awarded = question.points
+                is_correct = True # Mark as correct for progress
+            elif analysis['label'] == 'Neutral':
+                points_awarded = question.points * 0.4 # Partial for effort/neutral
+            else:
+                points_awarded = 0
         else:
-             if analysis['understood']: # Wrong option but good reasoning (ambiguity?)
-                 points_awarded = question.points * 0.4
+            # Scoring logic with partial credit for reasoning (MCQ/TF)
+            points_awarded = 0
+            if is_correct:
+                points_awarded = question.points
+                if question.reasoning_required and not analysis['understood']:
+                    points_awarded *= 0.7 # Penalty for correct answer but wrong reasoning
+            else:
+                 if analysis['understood']: 
+                     points_awarded = question.points * 0.4
         
         total_score += points_awarded
         

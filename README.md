@@ -90,9 +90,9 @@ Unlike traditional LMS platforms that offer static content delivery, our system 
 
 ---
 
-### 5. **Adaptive Quiz Generation & Evaluation**
-- **Dynamic Quiz Creation**: AI generates relevant multiple-choice questions for each topic
-- **Reasoning-Based Questions**: Questions require conceptual understanding, not just recall
+### 5. **Adaptive Conceptual Assessments**
+- **Open-Ended Evaluation**: Replaced traditional MCQs with deep, open-ended conceptual reasoning questions.
+- **Synthesis-Focused**: Questions force students to synthesize "how" and "why" principles rather than selecting from options.
 - **Automatic Grading**: Instant feedback with detailed explanations
 - **Failure Remediation**: Auto-generates remedial content when quiz score < 70%
 - **Performance Analytics**: Tracks misconceptions and reasoning patterns

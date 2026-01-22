@@ -331,70 +331,27 @@ const Quiz = () => {
 
                     {/* Interaction Area */}
                     <div className="space-y-4">
-                        {question.type === 'mcq' || question.type === 'true_false' ? (
-                            <div className="grid grid-cols-1 gap-3">
-                                {question.options.map((option, idx) => {
-                                    const isSelected = answers[question.id] === option;
-                                    return (
-                                        <button
-                                            key={idx}
-                                            onClick={() => handleAnswer(question.id, option)}
-                                            className={`w-full p-6 text-left rounded-[2rem] border-2 transition-all duration-300 group relative overflow-hidden
-                                            ${isSelected
-                                                    ? 'border-slate-900 bg-slate-900 text-white shadow-premium'
-                                                    : 'border-slate-100 bg-white hover:border-slate-300 text-slate-600 shadow-soft'}
-                                        `}
-                                        >
-                                            <div className="flex items-center gap-4 relative z-10">
-                                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all
-                                                    ${isSelected ? 'border-white' : 'border-slate-300 group-hover:border-slate-900'}
-                                                `}>
-                                                    {isSelected && <div className="w-3 h-3 rounded-full bg-white shadow-soft" />}
-                                                </div>
-                                                <span className="text-lg font-bold">{option}</span>
-                                            </div>
-                                            {isSelected && (
-                                                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-transparent pointer-events-none" />
-                                            )}
-                                        </button>
-                                    );
-                                })}
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white shadow-soft">
+                                <Brain size={16} />
                             </div>
-                        ) : (
-                            <textarea
-                                className="w-full p-6 bg-white border-2 border-slate-100 rounded-[2rem] focus:border-slate-900 focus:ring-0 min-h-[160px] text-lg font-semibold text-slate-900 shadow-soft transition-all"
-                                placeholder="Formulate your detailed answer..."
-                                value={answers[question.id] || ''}
-                                onChange={(e) => handleAnswer(question.id, e.target.value)}
-                            />
-                        )}
+                            <div>
+                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Conceptual Formulation</h3>
+                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Construct your professional technical response below</p>
+                            </div>
+                        </div>
+                        <textarea
+                            className="w-full p-8 bg-slate-50 border-2 border-slate-100 rounded-[2.5rem] focus:border-slate-900 focus:bg-white focus:ring-0 min-h-[250px] text-lg font-medium text-slate-900 shadow-inner transition-all leading-relaxed placeholder:text-slate-300"
+                            placeholder="Construct your detailed conceptual explanation here. Focus on the 'how' and 'why'..."
+                            value={answers[question.id] || ''}
+                            onChange={(e) => {
+                                handleAnswer(question.id, e.target.value);
+                                handleReasoning(question.id, e.target.value); // Mirror to reasoning for backend compatibility
+                            }}
+                        />
                     </div>
                 </div>
 
-                {/* Reasoning Layer */}
-                <div className="p-8 bg-slate-50/80 backdrop-blur-md rounded-[2.5rem] border border-slate-100 shadow-soft relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-5">
-                        <Brain size={64} className="text-slate-900" />
-                    </div>
-
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-soft">
-                            <Brain size={20} />
-                        </div>
-                        <div>
-                            <h3 className="text-base font-black text-slate-900 uppercase tracking-tight">Explain Your Thinking</h3>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tell us how you got this answer</p>
-                        </div>
-                    </div>
-
-                    <textarea
-                        className="w-full p-6 bg-white border border-slate-200 rounded-[1.8rem] focus:ring-4 focus:ring-slate-900/5 focus:border-slate-900 transition-all text-sm font-bold text-slate-700 placeholder:text-slate-300 shadow-inner"
-                        placeholder="Professor AI is listening to your logic..."
-                        rows={3}
-                        value={reasoning[question.id] || ''}
-                        onChange={(e) => handleReasoning(question.id, e.target.value)}
-                    />
-                </div>
 
                 <div className="flex gap-4">
                     <button
