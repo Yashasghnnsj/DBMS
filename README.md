@@ -458,6 +458,31 @@ graph TB
 
 ---
 
+## 🧠 Detailed Technical Logic: The Adaptive Learning Loop
+
+The AI Academic Companion implements a unique **closed-loop pedagogical system** that uses LLM reasoning to drive curriculum adaptation.
+
+### **1. The Severity-Aware Reasoning Engine**
+When a student submits a quiz, their written reasoning for each answer is processed by our **Llama-powered analyzer**. Instead of simple pattern matching, it performs a semantic evaluation:
+- **Entailment**: The logic follows the core concept correctly.
+- **Minor Misconception**: The student has the right idea but a minor execution error. 
+    - *Action*: Generating a **Clarification Note** that is instantly displayed and saved for future study.
+- **Core Conceptual Gap**: The student fundamentally misunderstands the principle.
+    - *Action*: Triggering a **Path Regeneration**.
+
+### **2. Dynamic Learning Path Regeneration**
+If a core gap is detected, the system does not simply show the correct answer. It performs a **Graph-Based Correction**:
+1. It requests the LLM to generate a **remedial sub-path** (usually 2 topics) that breaks the complex concept into simpler foundational units.
+2. It performs a **Topological Shift**: All future topics in the module have their `sequence_order` incremented to make room for the remedial units.
+3. It fetches **dedicated remedial videos** for these new bridging topics.
+
+### **3. Optimized Sequential Progression ("Play Continue")**
+To prevent cognitive overload, the system maintains a strict **Unlock-on-Mastery** policy:
+- **Sequential Unlocking**: Modules must be completed in order. Future modules (and their videos/quizzes) remain locked until the current topic is marked complete.
+- **Proactive Loading**: As soon as a module is completed, the system predicts the next step and **pre-fetches its video resources**, presenting them on the results page to maintain learning momentum.
+
+---
+
 ## 🔄 Data Flow
 
 ### **1. User Authentication Flow**
