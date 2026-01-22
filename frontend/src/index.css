@@ -1,0 +1,133 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    * {
+        @apply m-0 p-0 box-border;
+        font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    }
+
+    body {
+        @apply font-sans antialiased text-slate-900 overflow-x-hidden;
+        background: radial-gradient(circle at top right, #f8fafc, #f1f5f9);
+        min-height: 100vh;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @apply font-display tracking-tight text-slate-900;
+    }
+}
+
+@layer components {
+
+    /* Glassmorphism Card */
+    .glass-card {
+        @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-glass rounded-3xl transition-all duration-300;
+        @apply hover:bg-white/80 hover:shadow-premium hover:-translate-y-1;
+    }
+
+    /* Premium Card */
+    .card {
+        @apply bg-white rounded-[2rem] border border-slate-100 shadow-soft transition-all duration-500 overflow-hidden;
+    }
+
+    .card-hover:hover {
+        @apply shadow-premium -translate-y-2;
+    }
+
+    /* Modern Progress Bar */
+    .progress-bar {
+        @apply h-3 w-full bg-slate-100 rounded-full overflow-hidden relative shadow-inner;
+    }
+
+    .progress-fill {
+        @apply h-full transition-all duration-1000 ease-out rounded-full;
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    }
+
+    /* Animated Buttons */
+    .btn {
+        @apply px-6 py-3 rounded-2xl font-semibold transition-all duration-300 inline-flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+    }
+
+    .btn-primary {
+        @apply bg-slate-900 text-white shadow-lg hover:bg-slate-800 hover:shadow-slate-200/50 hover:-translate-y-0.5;
+    }
+
+    .btn-gradient {
+        @apply text-white shadow-lg hover:shadow-primary-500/25 hover:-translate-y-0.5;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+
+    .btn-secondary {
+        @apply bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300;
+    }
+
+    .btn-ghost {
+        @apply bg-transparent text-slate-600 hover:bg-slate-100/50;
+    }
+
+    /* Premium Input */
+    input:not([type="checkbox"]):not([type="radio"]),
+    textarea,
+    select {
+        @apply bg-slate-50/50 border border-slate-200 text-slate-900 px-5 py-4 rounded-2xl w-full outline-none;
+        @apply transition-all duration-300;
+        @apply focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 focus:shadow-soft;
+    }
+
+    /* Modern Sidebar */
+    .sidebar-link {
+        @apply flex items-center gap-4 px-5 py-3.5 rounded-2xl text-slate-500 transition-all duration-300 font-medium whitespace-nowrap;
+        @apply hover:bg-slate-100 hover:text-slate-900;
+    }
+
+    .sidebar-link-active {
+        @apply bg-slate-900 text-white shadow-xl shadow-slate-200 hover:bg-slate-900 hover:text-white;
+    }
+
+    /* Badges */
+    .badge {
+        @apply px-4 py-1.5 rounded-full text-xs font-bold tracking-wide uppercase;
+    }
+
+    /* Aesthetic Elements */
+    .mesh-gradient {
+        background-color: #f1f5f9;
+        background-image:
+            radial-gradient(at 0% 0%, hsla(217, 100%, 97%, 1) 0, transparent 50%),
+            radial-gradient(at 50% 0%, hsla(225, 100%, 92%, 1) 0, transparent 50%),
+            radial-gradient(at 100% 0%, hsla(217, 100%, 97%, 1) 0, transparent 50%);
+    }
+}
+
+@layer utilities {
+    .animate-float {
+        animation: float 6s ease-in-out infinite;
+    }
+}
+
+/* Scrollbar Overhaul */
+::-webkit-scrollbar {
+    @apply w-1.5;
+}
+
+::-webkit-scrollbar-track {
+    @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    @apply bg-slate-200 rounded-full transition-colors hover:bg-slate-300;
+}
+
+#root {
+    @apply flex flex-col min-h-screen mesh-gradient;
+}
