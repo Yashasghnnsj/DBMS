@@ -17,51 +17,52 @@ def analyze_reasoning(question_text, correct_answer, student_answer, student_rea
 
     try:
         prompt = f"""
-        Act as an automated grader.
+        Act as an Advanced Academic Evaluator using the Llama-3 model.
+        
+        CONTEXT:
         Question: "{question_text}"
-        Correct Answer: "{correct_answer}"
-        Student Answer: "{student_answer}"
-        Student Reasoning: "{student_reasoning}"
+        Reference Model Answer: "{correct_answer}"
+        Student's Essay/Reasoning: "{student_reasoning}"
         
-        Task: Analyze the student's reasoning.
-        1. Does it show understanding?
-        2. Is it logically consistent with the correct answer?
-        
-        Classify as one of:
-        - Entailment (Correct reasoning)
-        - Contradiction (Incorrect reasoning)
-        - Neutral (Vague/Unrelated)
+        TASK:
+        1. Evaluate the student's depth of understanding.
+        2. Assign a score from 0.0 to 10.0.
+           - 9.0-10.0: Perfect logic, covers all technical nuances.
+           - 7.0-8.9: Strong understanding, but missing minor depth or clarity.
+           - 5.0-6.9: Partial understanding, has the right direction but significant gaps.
+           - Below 5.0: Fundamental misconceptions or irrelevant logic.
+        3. Provide a clear "Grading Justification" explaining exactly why marks were awarded or deducted.
+        4. Categorize any misconceptions by severity (minor vs core).
         
         Strictly output VALID JSON:
         {{
-            "label": "Entailment" | "Contradiction" | "Neutral", 
-            "confidence": 0.9,
+            "points_allocated": 8.5,
+            "grading_justification": "The student correctly identified X but failed to mention the relationship between Y and Z, which is why 1.5 marks were deducted.",
+            "label": "Entailment" | "Contradiction" | "Neutral",
             "severity": "minor" | "core",
-            "core_importance": 0.0 to 1.0,
-            "feedback": "Concise pedagogical feedback...",
-            "misconceptions": ["List any specific errors"],
-            "clarification_notes": "If severity is minor, provide a 1-2 sentence clarification."
+            "feedback": "Concise feedback directly to the student...",
+            "misconceptions": ["Specific error 1", "Specific error 2"],
+            "clarification_notes": "Expert clarification for the student."
         }}
         """
         
-        response = llm_service.generate_content(prompt, max_new_tokens=256)
-        text_resp = response.text.replace('```json', '').replace('```', '').strip()
+        response = llm_service.generate_content(prompt, max_new_tokens=512)
+        text_resp = llm_service.clean_json_response(response.text)
         result = json.loads(text_resp)
         
         label = result.get('label', 'Neutral')
-        score = 1.0 if label == 'Entailment' else 0.0
-        if label == 'Neutral': score = 0.5
+        raw_score = result.get('points_allocated', 0.0)
         
         return {
-            'understood': label == 'Entailment',
+            'understood': raw_score >= 7.0,
+            'points_allocated': raw_score,
+            'grading_justification': result.get('grading_justification', 'No justification provided.'),
             'misconceptions': result.get('misconceptions', []),
-            'feedback': result.get('feedback', "Reasoning reviewed."),
+            'feedback': result.get('feedback', "Evaluation complete."),
             'label': label,
-            'severity': result.get('severity', 'core' if label != 'Entailment' else 'none'),
-            'core_importance': result.get('core_importance', 0.5),
+            'severity': result.get('severity', 'core' if raw_score < 7.0 else 'minor' if raw_score < 9.0 else 'none'),
             'clarification_notes': result.get('clarification_notes', ''),
-            'confidence': result.get('confidence', 0.8),
-            'score': score
+            'model_answer': correct_answer
         }
         
     except Exception as e:

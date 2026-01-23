@@ -135,6 +135,72 @@ const Quiz = () => {
                             </div>
                         </div>
 
+                        {/* Detailed Question Evaluation Section */}
+                        {result.details && (
+                            <div className="mb-12 text-left space-y-10">
+                                <div className="flex items-center gap-2 mb-6">
+                                    <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-soft">
+                                        <Award size={16} />
+                                    </div>
+                                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Intelligent Evaluation Breakdown</h3>
+                                </div>
+
+                                {Object.values(result.details).map((detail, i) => (
+                                    <motion.div
+                                        key={`detail-${i}`}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: i * 0.1 }}
+                                        className="bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-soft relative overflow-hidden group"
+                                    >
+                                        <div className="flex flex-col md:flex-row gap-8 relative z-10">
+                                            {/* Score Column */}
+                                            <div className="md:w-32 flex-shrink-0 text-center flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-100 pb-6 md:pb-0 md:pr-8">
+                                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Pedagogical Score</div>
+                                                <div className={`text-4xl font-black ${detail.score_out_of_10 >= 7 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                                                    {detail.score_out_of_10?.toFixed(1)}<span className="text-slate-300 text-sm">/10</span>
+                                                </div>
+                                                <div className="mt-2 flex gap-1">
+                                                    {[...Array(5)].map((_, star) => (
+                                                        <div key={star} className={`w-1.5 h-1.5 rounded-full ${star < (detail.score_out_of_10 / 2) ? 'bg-blue-600' : 'bg-slate-200'}`} />
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Content Column */}
+                                            <div className="flex-1 space-y-6">
+                                                <div>
+                                                    <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-2 italic">Professor AI's Justification</p>
+                                                    <p className="text-slate-700 font-bold leading-relaxed">{detail.justification}</p>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 gap-4 pt-4">
+                                                    <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Model Reference Answer</p>
+                                                        <p className="text-slate-600 text-sm font-medium leading-relaxed italic line-clamp-3 hover:line-clamp-none transition-all cursor-pointer">
+                                                            {detail.model_answer}
+                                                        </p>
+                                                    </div>
+
+                                                    {detail.clarification && (
+                                                        <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-100 flex items-start gap-4">
+                                                            <div className="w-6 h-6 bg-emerald-200 rounded-full flex items-center justify-center text-emerald-700 font-bold text-xs flex-shrink-0">
+                                                                !
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-emerald-900 font-black text-[10px] uppercase tracking-widest mb-1 italic">Key Clarification</p>
+                                                                <p className="text-emerald-900 text-sm font-medium">{detail.clarification}</p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        )}
+
                         {/* Reasoning Insights Section */}
                         {result.misconceptions && result.misconceptions.length > 0 && (
                             <div className="mb-12 text-left">

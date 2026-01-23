@@ -462,13 +462,13 @@ graph TB
 
 The AI Academic Companion implements a unique **closed-loop pedagogical system** that uses LLM reasoning to drive curriculum adaptation.
 
-### **1. The Severity-Aware Reasoning Engine**
-When a student submits a quiz, their written reasoning for each answer is processed by our **Llama-powered analyzer**. Instead of simple pattern matching, it performs a semantic evaluation:
-- **Entailment**: The logic follows the core concept correctly.
-- **Minor Misconception**: The student has the right idea but a minor execution error. 
-    - *Action*: Generating a **Clarification Note** that is instantly displayed and saved for future study.
-- **Core Conceptual Gap**: The student fundamentally misunderstands the principle.
-    - *Action*: Triggering a **Path Regeneration**.
+### **1. Intelligent Granular Evaluation (Llama-3-8b)**
+When a student submits an open-ended conceptual answer, the system performs a multi-stage pedagogical evaluation:
+- **Depth Analysis**: The AI assigns a granular score from **0.0 to 10.0** based on the technical nuances captured in the student's reasoning.
+- **Grading Justification**: For every response, the system provides a detailed breakdown of *why* specific marks were awarded or deducted, comparing the student's logic directly to a gold-standard **Model Reference Answer**.
+- **Severity-Aware Feedback**:
+    - **Minor Misconceptions (7.0 - 8.9)**: The student receives a targeted **Clarification Note** to bridge the small knowledge gap without stalling progress.
+    - **Core Conceptual Gaps (< 7.0)**: These trigger an immediate **Learning Path Regeneration** to provide fundamental remediation.
 
 ### **2. Dynamic Learning Path Regeneration**
 If a core gap is detected, the system does not simply show the correct answer. It performs a **Graph-Based Correction**:

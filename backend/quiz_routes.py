@@ -296,23 +296,18 @@ def submit_quiz(quiz_id):
             user_reason
         )
         
-        # Scoring logic for conceptual questions (Pure reasoning)
+        # Scoring logic for conceptual questions (Pure reasoning 0-10)
         points_awarded = 0
         if question.question_type == 'conceptual':
-            if analysis['understood']:
-                points_awarded = question.points
-                is_correct = True # Mark as correct for progress
-            elif analysis['label'] == 'Neutral':
-                points_awarded = question.points * 0.4 # Partial for effort/neutral
-            else:
-                points_awarded = 0
+            # Scale the 0-10 score to the question's point value
+            points_awarded = (analysis['points_allocated'] / 10.0) * question.points
+            is_correct = analysis['understood']
         else:
             # Scoring logic with partial credit for reasoning (MCQ/TF)
-            points_awarded = 0
             if is_correct:
                 points_awarded = question.points
                 if question.reasoning_required and not analysis['understood']:
-                    points_awarded *= 0.7 # Penalty for correct answer but wrong reasoning
+                    points_awarded *= 0.7 
             else:
                  if analysis['understood']: 
                      points_awarded = question.points * 0.4
@@ -322,7 +317,10 @@ def submit_quiz(quiz_id):
         feedback_details[q_id] = {
             'correct': is_correct,
             'understood': analysis['understood'],
+            'score_out_of_10': analysis['points_allocated'],
+            'justification': analysis['grading_justification'],
             'feedback': analysis['feedback'],
+            'model_answer': analysis['model_answer'],
             'severity': analysis['severity'],
             'clarification': analysis['clarification_notes']
         }
